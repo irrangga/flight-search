@@ -51,7 +51,21 @@ func NormalizeAirAsia(flight map[string]interface{}) (domain.Flight, error) {
 	}
 
 	// Price
-	priceIDR, _ := flight["price_idr"].(float64)
+	var priceIDR float64
+	if p, ok := flight["price_idr"]; ok {
+		switch v := p.(type) {
+		case float64:
+			priceIDR = v
+		case float32:
+			priceIDR = float64(v)
+		case int:
+			priceIDR = float64(v)
+		case int64:
+			priceIDR = float64(v)
+		case int32:
+			priceIDR = float64(v)
+		}
+	}
 
 	// Seats
 	seats, _ := flight["seats"].(float64)
@@ -67,6 +81,9 @@ func NormalizeAirAsia(flight map[string]interface{}) (domain.Flight, error) {
 		checked = "Additional fee"
 	}
 
+	depCity := resolveCity("", fromAirport)
+	arrCity := resolveCity("", toAirport)
+
 	return domain.Flight{
 		ID:           fmt.Sprintf("%s_%s", flightCode, "AirAsia"),
 		Provider:     "AirAsia",
@@ -74,13 +91,13 @@ func NormalizeAirAsia(flight map[string]interface{}) (domain.Flight, error) {
 		FlightNumber: flightCode,
 		Departure: domain.FlightEndpoint{
 			Airport:   fromAirport,
-			City:      "",
+			City:      depCity,
 			Datetime:  depTime,
 			Timestamp: depDt.Unix(),
 		},
 		Arrival: domain.FlightEndpoint{
 			Airport:   toAirport,
-			City:      "",
+			City:      arrCity,
 			Datetime:  arrTime,
 			Timestamp: arrDt.Unix(),
 		},

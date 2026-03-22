@@ -60,7 +60,21 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 
 	// Price
 	pricing, _ := flight["pricing"].(map[string]interface{})
-	total, _ := pricing["total"].(float64)
+	var total float64
+	if t, ok := pricing["total"]; ok {
+		switch v := t.(type) {
+		case float64:
+			total = v
+		case float32:
+			total = float64(v)
+		case int:
+			total = float64(v)
+		case int64:
+			total = float64(v)
+		case int32:
+			total = float64(v)
+		}
+	}
 	currency, _ := pricing["currency"].(string)
 
 	// Seats
@@ -100,6 +114,9 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 		}
 	}
 
+	depCity := resolveCity(fromCity, fromCode)
+	arrCity := resolveCity(toCity, toCode)
+
 	return domain.Flight{
 		ID:           fmt.Sprintf("%s_%s", id, "Lion Air"),
 		Provider:     "Lion Air",
@@ -107,13 +124,13 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 		FlightNumber: id,
 		Departure: domain.FlightEndpoint{
 			Airport:   fromCode,
-			City:      fromCity,
+			City:      depCity,
 			Datetime:  depTime + "+07:00",
 			Timestamp: depDt.Unix(),
 		},
 		Arrival: domain.FlightEndpoint{
 			Airport:   toCode,
-			City:      toCity,
+			City:      arrCity,
 			Datetime:  arrTime + "+08:00",
 			Timestamp: arrDt.Unix(),
 		},

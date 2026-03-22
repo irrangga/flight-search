@@ -21,7 +21,8 @@ func NormalizeGarudaIndonesia(flight map[string]interface{}) (domain.Flight, err
 		return domain.Flight{}, fmt.Errorf("invalid departure time: %w", err)
 	}
 	depAirport, _ := depData["airport"].(string)
-	depCity, _ := depData["city"].(string)
+	depCityRaw, _ := depData["city"].(string)
+	depCity := resolveCity(depCityRaw, depAirport)
 
 	// Parse arrival
 	arrData, _ := flight["arrival"].(map[string]interface{})
@@ -31,7 +32,8 @@ func NormalizeGarudaIndonesia(flight map[string]interface{}) (domain.Flight, err
 		return domain.Flight{}, fmt.Errorf("invalid arrival time: %w", err)
 	}
 	arrAirport, _ := arrData["airport"].(string)
-	arrCity, _ := arrData["city"].(string)
+	arrCityRaw, _ := arrData["city"].(string)
+	arrCity := resolveCity(arrCityRaw, arrAirport)
 
 	// Duration
 	durationMinutes, _ := flight["duration_minutes"].(float64)
@@ -52,7 +54,21 @@ func NormalizeGarudaIndonesia(flight map[string]interface{}) (domain.Flight, err
 
 	// Price
 	priceData, _ := flight["price"].(map[string]interface{})
-	priceAmount, _ := priceData["amount"].(float64)
+	var priceAmount float64
+	if amount, ok := priceData["amount"]; ok {
+		switch v := amount.(type) {
+		case float64:
+			priceAmount = v
+		case float32:
+			priceAmount = float64(v)
+		case int:
+			priceAmount = float64(v)
+		case int64:
+			priceAmount = float64(v)
+		case int32:
+			priceAmount = float64(v)
+		}
+	}
 	currency, _ := priceData["currency"].(string)
 
 	// Available seats

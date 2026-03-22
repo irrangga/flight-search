@@ -1,10 +1,26 @@
 package normalizer
 
-import "flight-search/internal/domain"
+import (
+	"flight-search/internal/constant"
+	"flight-search/internal/domain"
+)
 
 // Normalizer normalizes raw provider data to unified domain model
 type Normalizer interface {
 	Normalize(flight map[string]interface{}) (domain.Flight, error)
+}
+
+func resolveCity(city, airportCode string) string {
+	if city != "" {
+		return city
+	}
+	if airportCode == "" {
+		return ""
+	}
+	if lookup, ok := constant.GetAirportCity(airportCode); ok {
+		return lookup
+	}
+	return ""
 }
 
 // NormalizeFlight routes normalization to the appropriate provider normalizer

@@ -52,7 +52,22 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 
 	// Price
 	fare, _ := flight["fare"].(map[string]interface{})
-	totalPrice, _ := fare["totalPrice"].(float64)
+	var totalPrice float64
+	if tp, ok := fare["totalPrice"]; ok {
+		switch v := tp.(type) {
+		case float64:
+			totalPrice = v
+		case float32:
+			totalPrice = float64(v)
+		case int:
+			totalPrice = float64(v)
+		case int64:
+			totalPrice = float64(v)
+		case int32:
+			totalPrice = float64(v)
+		}
+	}
+
 	currencyCode, _ := fare["currencyCode"].(string)
 
 	// Seats
@@ -84,6 +99,9 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 		checked = "20kg checked"
 	}
 
+	depCity := resolveCity("", origin)
+	arrCity := resolveCity("", destination)
+
 	return domain.Flight{
 		ID:           fmt.Sprintf("%s_%s", flightNumber, "Batik Air"),
 		Provider:     "Batik Air",
@@ -91,13 +109,13 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 		FlightNumber: flightNumber,
 		Departure: domain.FlightEndpoint{
 			Airport:   origin,
-			City:      "",
+			City:      depCity,
 			Datetime:  depTimeStr,
 			Timestamp: depDt.Unix(),
 		},
 		Arrival: domain.FlightEndpoint{
 			Airport:   destination,
-			City:      "",
+			City:      arrCity,
 			Datetime:  arrTimeStr,
 			Timestamp: arrDt.Unix(),
 		},
