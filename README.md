@@ -72,6 +72,25 @@ Server starts on `http://localhost:8080`
 }
 ```
 
+**Request with Filters:**
+
+```json
+{
+  "origin": "CGK",
+  "destination": "DPS",
+  "departureDate": "2025-12-15",
+  "passengers": 1,
+  "cabinClass": "economy",
+  "priceRange": [1000000, 2000000],
+  "stopsRange": [0, 1],
+  "departureTimeRange": ["06:00", "12:00"],
+  "arrivalTimeRange": ["10:00", "18:00"],
+  "airlines": ["AirAsia", "Garuda"],
+  "durationRange": [60, 360],
+  "sortBy": "price_asc"
+}
+```
+
 **Response:**
 
 ```json

@@ -27,6 +27,8 @@ func TestSearchFlights_ValidRequest(t *testing.T) {
 		DepartureDate: "2025-12-15",
 		Passengers:    1,
 		CabinClass:    "economy",
+		PriceRange:    []int{500000, 2000000},
+		SortBy:        "price_asc",
 	}
 
 	body, _ := json.Marshal(requestBody)

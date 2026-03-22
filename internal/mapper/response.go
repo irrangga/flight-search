@@ -11,11 +11,12 @@ type SearchResponse struct {
 
 // SearchCriteria represents the search criteria used
 type SearchCriteria struct {
-	Origin        string `json:"origin"`
-	Destination   string `json:"destination"`
-	DepartureDate string `json:"departure_date"`
-	Passengers    int    `json:"passengers"`
-	CabinClass    string `json:"cabin_class"`
+	Origin        string  `json:"origin"`
+	Destination   string  `json:"destination"`
+	DepartureDate string  `json:"departure_date"`
+	ReturnDate    *string `json:"return_date,omitempty"`
+	Passengers    int     `json:"passengers"`
+	CabinClass    string  `json:"cabin_class"`
 }
 
 // Metadata represents search metadata
@@ -90,6 +91,7 @@ func ToSearchResponse(result domain.SearchResult) SearchResponse {
 			Origin:        result.SearchCriteria.Origin,
 			Destination:   result.SearchCriteria.Destination,
 			DepartureDate: result.SearchCriteria.DepartureDate,
+			ReturnDate:    result.SearchCriteria.ReturnDate,
 			Passengers:    result.SearchCriteria.Passengers,
 			CabinClass:    result.SearchCriteria.CabinClass,
 		},

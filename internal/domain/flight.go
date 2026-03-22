@@ -10,6 +10,17 @@ type SearchRequest struct {
 	ReturnDate    *string
 	Passengers    int
 	CabinClass    string
+
+	// Filters
+	PriceRange         []int
+	StopsRange         []int
+	DepartureTimeRange []string
+	ArrivalTimeRange   []string
+	Airlines           []string
+	DurationRange      []int
+
+	// Sort
+	SortBy string // "price_asc", "price_desc", "duration_asc", "duration_desc", "departure_asc", "arrival_asc"
 }
 
 // ProviderResult represents the result from a single provider
@@ -83,6 +94,7 @@ type SearchCriteria struct {
 	Origin        string
 	Destination   string
 	DepartureDate string
+	ReturnDate    *string
 	Passengers    int
 	CabinClass    string
 }

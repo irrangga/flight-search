@@ -18,6 +18,17 @@ type SearchRequest struct {
 	ReturnDate    *string `json:"returnDate,omitempty"`
 	Passengers    int     `json:"passengers"`
 	CabinClass    string  `json:"cabinClass"`
+
+	// Filters
+	PriceRange         []int    `json:"priceRange,omitempty"`
+	StopsRange         []int    `json:"stopsRange,omitempty"`
+	DepartureTimeRange []string `json:"departureTimeRange,omitempty"`
+	ArrivalTimeRange   []string `json:"arrivalTimeRange,omitempty"`
+	Airlines           []string `json:"airlines,omitempty"`
+	DurationRange      []int    `json:"durationRange,omitempty"`
+
+	// Sort
+	SortBy string `json:"sortBy,omitempty"`
 }
 
 // Handler handles HTTP requests
@@ -44,6 +55,15 @@ func (h *Handler) searchFlightsHandler(c *gin.Context) {
 		ReturnDate:    req.ReturnDate,
 		Passengers:    req.Passengers,
 		CabinClass:    req.CabinClass,
+
+		PriceRange:         req.PriceRange,
+		StopsRange:         req.StopsRange,
+		DepartureTimeRange: req.DepartureTimeRange,
+		ArrivalTimeRange:   req.ArrivalTimeRange,
+		Airlines:           req.Airlines,
+		DurationRange:      req.DurationRange,
+
+		SortBy: req.SortBy,
 	}
 
 	result := h.aggregator.Search(domainRequest)
