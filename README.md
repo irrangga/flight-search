@@ -205,10 +205,6 @@ aggregator/Aggregator.Search()
     HTTP Response (JSON)
 ```
 
-## Future Enhancements (Skipped for Now)
-
-- [ ] Caching layer (`internal/cache/`)
-
 ```bash
 # Run as web server
 go run ./cmd/api
@@ -248,8 +244,6 @@ go test ./...
 
 ## Future Enhancements
 
-- Add caching layer (Redis/memory)
 - Support round-trip searches
 - Implement retry logic with exponential backoff
-- Add currency formatting
 - Support multi-city searches

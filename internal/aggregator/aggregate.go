@@ -13,6 +13,7 @@ import (
 // Aggregator orchestrates flight search across providers
 type Aggregator struct {
 	providers []provider.Provider
+	cache     *CacheManager
 }
 
 // NewAggregator creates a new flight aggregator
@@ -24,6 +25,7 @@ func NewAggregator() *Aggregator {
 			provider.NewBatikAirProvider(),
 			provider.NewAirAsiaProvider(),
 		},
+		cache: NewCacheManager(),
 	}
 }
 
@@ -36,11 +38,18 @@ func NewTestAggregator() *Aggregator {
 			provider.NewBatikAirProviderForTest(),
 			provider.NewAirAsiaProviderForTest(),
 		},
+		cache: NewCacheManager(),
 	}
 }
 
 // Search performs parallel flight search across all providers
 func (a *Aggregator) Search(request domain.SearchRequest) (domain.SearchResult, error) {
+	// Check cache first
+	if cachedResult, found := a.cache.Get(request); found {
+		cachedResult.Metadata.CacheHit = true
+		return cachedResult, nil
+	}
+
 	start := time.Now()
 
 	// Channel to collect results
@@ -92,7 +101,7 @@ func (a *Aggregator) Search(request domain.SearchRequest) (domain.SearchResult, 
 	// Create response
 	searchTimeMs := time.Since(start).Milliseconds()
 
-	return domain.SearchResult{
+	result := domain.SearchResult{
 		SearchCriteria: domain.SearchCriteria{
 			Origin:        request.Origin,
 			Destination:   request.Destination,
@@ -110,5 +119,10 @@ func (a *Aggregator) Search(request domain.SearchRequest) (domain.SearchResult, 
 			CacheHit:           false,
 		},
 		Flights: normalizedFlights,
-	}, nil
+	}
+
+	// Cache the result
+	a.cache.Set(request, result)
+
+	return result, nil
 }
