@@ -1,6 +1,9 @@
 package mapper
 
-import "flight-search/internal/domain"
+import (
+	"flight-search/internal/domain"
+	"flight-search/internal/utils"
+)
 
 // SearchResponse is the HTTP response DTO
 type SearchResponse struct {
@@ -69,8 +72,9 @@ type Duration struct {
 
 // Price DTO
 type Price struct {
-	Amount   int    `json:"amount"`
-	Currency string `json:"currency"`
+	Amount    int    `json:"amount"`
+	Currency  string `json:"currency"`
+	Formatted string `json:"formatted"`
 }
 
 // Baggage DTO
@@ -134,8 +138,9 @@ func toFlightDTO(flight domain.Flight) FlightDTO {
 		},
 		Stops: flight.Stops,
 		Price: Price{
-			Amount:   flight.Price.Amount,
-			Currency: flight.Price.Currency,
+			Amount:    flight.Price.Amount,
+			Currency:  flight.Price.Currency,
+			Formatted: utils.FormatCurrency(float64(flight.Price.Amount), flight.Price.Currency),
 		},
 		AvailableSeats: flight.AvailableSeats,
 		CabinClass:     flight.CabinClass,
