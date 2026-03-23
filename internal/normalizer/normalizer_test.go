@@ -86,7 +86,7 @@ func TestNormalizeBatikAir(t *testing.T) {
 		"seatsAvailable": 32,
 		"aircraftModel":  "Airbus A320",
 		"baggageInfo":    "7kg cabin, 20kg checked",
-		"onboardServices": []string{
+		"onboardServices": []any{
 			"Snack",
 			"Beverage",
 		},
@@ -118,9 +118,20 @@ func TestNormalizeBatikAir(t *testing.T) {
 	if f.Airline.Name != "Batik Air" {
 		t.Errorf("expected airline Batik Air, got %q", f.Airline.Name)
 	}
+	if len(f.Amenities) != 2 {
+		t.Errorf("expected amenities length is 2, got %v", f.Amenities)
+	}
+	for i, amenity := range f.Amenities {
+		if i == 0 && amenity != "snack" {
+			t.Errorf("expected snack amenity")
+		}
+		if i == 1 && amenity != "beverage" {
+			t.Errorf("expected beverage amenity")
+		}
+	}
 }
 
-func TestNormalizeGaruda(t *testing.T) {
+func TestNormalizeGarudaIndonesia(t *testing.T) {
 	flight := map[string]interface{}{
 		"flight_id":    "GA400",
 		"airline":      "Garuda Indonesia",
@@ -150,7 +161,7 @@ func TestNormalizeGaruda(t *testing.T) {
 			"carry_on": 1,
 			"checked":  2,
 		},
-		"amenities": []string{
+		"amenities": []any{
 			"wifi",
 			"meal",
 			"entertainment",
@@ -183,9 +194,23 @@ func TestNormalizeGaruda(t *testing.T) {
 	if f.Airline.Name != "Garuda Indonesia" {
 		t.Errorf("expected airline Garuda Indonesia, got %q", f.Airline.Name)
 	}
+	if len(f.Amenities) != 3 {
+		t.Errorf("expected amenities length is 3, got %v", f.Amenities)
+	}
+	for i, amenity := range f.Amenities {
+		if i == 0 && amenity != "wifi" {
+			t.Errorf("expected wifi amenity")
+		}
+		if i == 1 && amenity != "meal" {
+			t.Errorf("expected meal amenity")
+		}
+		if i == 2 && amenity != "entertainment" {
+			t.Errorf("expected entertainment amenity")
+		}
+	}
 }
 
-func TestNormalizeLion(t *testing.T) {
+func TestNormalizeLionAir(t *testing.T) {
 	flight := map[string]interface{}{
 		"id": "JT740",
 		"carrier": map[string]interface{}{
@@ -220,8 +245,8 @@ func TestNormalizeLion(t *testing.T) {
 		"seats_left": 45,
 		"plane_type": "Boeing 737-900ER",
 		"services": map[string]interface{}{
-			"wifi_available": false,
-			"meals_included": false,
+			"wifi_available": true,
+			"meals_included": true,
 			"baggage_allowance": map[string]interface{}{
 				"cabin": "7 kg",
 				"hold":  "20 kg",
@@ -254,5 +279,16 @@ func TestNormalizeLion(t *testing.T) {
 	}
 	if f.Airline.Name != "Lion Air" {
 		t.Errorf("expected airline Lion Air, got %q", f.Airline.Name)
+	}
+	if len(f.Amenities) != 2 {
+		t.Errorf("expected amenities length is 2, got %v", f.Amenities)
+	}
+	for i, amenity := range f.Amenities {
+		if i == 0 && amenity != "wifi" {
+			t.Errorf("expected wifi amenity")
+		}
+		if i == 1 && amenity != "meal" {
+			t.Errorf("expected meal amenity")
+		}
 	}
 }

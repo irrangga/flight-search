@@ -91,7 +91,7 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 	}
 
 	// Amenities
-	var amenities []string
+	amenities := []string{}
 	if services, ok := flight["services"].(map[string]interface{}); ok {
 		if wifi, ok := services["wifi_available"].(bool); ok && wifi {
 			amenities = append(amenities, "wifi")

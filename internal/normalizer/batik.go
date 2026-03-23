@@ -80,11 +80,11 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 	}
 
 	// Amenities
-	var amenities []string
-	if onboardServices, ok := flight["onboardServices"].([]interface{}); ok {
+	amenities := []string{}
+	if onboardServices, ok := flight["onboardServices"].([]any); ok {
 		for _, s := range onboardServices {
 			if str, ok := s.(string); ok {
-				amenities = append(amenities, str)
+				amenities = append(amenities, strings.ToLower(str))
 			}
 		}
 	}

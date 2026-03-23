@@ -2,6 +2,7 @@ package normalizer
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"flight-search/internal/domain"
@@ -84,11 +85,11 @@ func NormalizeGarudaIndonesia(flight map[string]interface{}) (domain.Flight, err
 	}
 
 	// Amenities
-	var amenities []string
-	if amenitiesVal, ok := flight["amenities"].([]interface{}); ok {
-		for _, a := range amenitiesVal {
-			if str, ok := a.(string); ok {
-				amenities = append(amenities, str)
+	amenities := []string{}
+	if amenitiesVal, ok := flight["amenities"].([]any); ok {
+		for _, amenity := range amenitiesVal {
+			if str, ok := amenity.(string); ok {
+				amenities = append(amenities, strings.ToLower(str))
 			}
 		}
 	}
