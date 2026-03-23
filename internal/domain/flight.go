@@ -13,7 +13,7 @@ type SearchRequest struct {
 
 	// Filters
 	PriceRange         []int
-	StopsRange         []int
+	NumberOfStops      []int
 	DepartureTimeRange []string
 	ArrivalTimeRange   []string
 	Airlines           []string

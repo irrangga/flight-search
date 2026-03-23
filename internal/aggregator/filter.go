@@ -43,11 +43,16 @@ func (a *Aggregator) matchesFilters(flight domain.Flight, request domain.SearchR
 		}
 	}
 
-	// Number of stops range
-	if len(request.StopsRange) == 2 {
-		minStops := request.StopsRange[0]
-		maxStops := request.StopsRange[1]
-		if flight.Stops < minStops || flight.Stops > maxStops {
+	// Number of stops - exact values list
+	if len(request.NumberOfStops) > 0 {
+		found := false
+		for _, allowedStops := range request.NumberOfStops {
+			if flight.Stops == allowedStops {
+				found = true
+				break
+			}
+		}
+		if !found {
 			return false
 		}
 	}

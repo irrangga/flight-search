@@ -126,14 +126,14 @@ func TestFilter_Airlines(t *testing.T) {
 	}
 }
 
-func TestFilter_StopsRange(t *testing.T) {
+func TestFilter_NumberOfStops(t *testing.T) {
 	agg := &Aggregator{}
 
 	request := domain.SearchRequest{
-		Origin:      "CGK",
-		Destination: "DPS",
-		Passengers:  1,
-		StopsRange:  []int{1, 2},
+		Origin:        "CGK",
+		Destination:   "DPS",
+		Passengers:    1,
+		NumberOfStops: []int{1, 2},
 	}
 
 	flights := []domain.Flight{
@@ -146,19 +146,42 @@ func TestFilter_StopsRange(t *testing.T) {
 		{
 			Departure:      domain.FlightEndpoint{Airport: "CGK"},
 			Arrival:        domain.FlightEndpoint{Airport: "DPS"},
+			Stops:          2,
+			AvailableSeats: 5,
+		},
+		{
+			Departure:      domain.FlightEndpoint{Airport: "CGK"},
+			Arrival:        domain.FlightEndpoint{Airport: "DPS"},
 			Stops:          0,
+			AvailableSeats: 5,
+		},
+		{
+			Departure:      domain.FlightEndpoint{Airport: "CGK"},
+			Arrival:        domain.FlightEndpoint{Airport: "DPS"},
+			Stops:          3,
 			AvailableSeats: 5,
 		},
 	}
 
 	filtered := agg.Filter(flights, request)
 
-	if len(filtered) != 1 {
-		t.Errorf("Expected 1 flight, got %d", len(filtered))
+	if len(filtered) != 2 {
+		t.Errorf("Expected 2 flights, got %d", len(filtered))
 	}
 
-	if filtered[0].Stops != 1 {
-		t.Errorf("Expected 1 stop, got %d", filtered[0].Stops)
+	// Should include flights with 1 and 2 stops
+	expectedStops := map[int]bool{1: false, 2: false}
+	for _, flight := range filtered {
+		if flight.Stops == 1 {
+			expectedStops[1] = true
+		}
+		if flight.Stops == 2 {
+			expectedStops[2] = true
+		}
+	}
+
+	if !expectedStops[1] || !expectedStops[2] {
+		t.Error("Expected flights with 1 and 2 stops to be included")
 	}
 }
 

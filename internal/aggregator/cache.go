@@ -48,7 +48,7 @@ func (cm *CacheManager) generateCacheKey(request domain.SearchRequest) string {
 		request.Passengers,
 		request.CabinClass,
 		request.PriceRange,
-		request.StopsRange,
+		request.NumberOfStops,
 		request.DepartureTimeRange,
 		request.ArrivalTimeRange,
 		request.Airlines,

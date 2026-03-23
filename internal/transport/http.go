@@ -21,7 +21,7 @@ type SearchRequest struct {
 
 	// Filters
 	PriceRange         []int    `json:"priceRange,omitempty"`
-	StopsRange         []int    `json:"stopsRange,omitempty"`
+	NumberOfStops      []int    `json:"numberOfStops,omitempty"`
 	DepartureTimeRange []string `json:"departureTimeRange,omitempty"`
 	ArrivalTimeRange   []string `json:"arrivalTimeRange,omitempty"`
 	Airlines           []string `json:"airlines,omitempty"`
@@ -57,7 +57,7 @@ func (h *Handler) searchFlightsHandler(c *gin.Context) {
 		CabinClass:    req.CabinClass,
 
 		PriceRange:         req.PriceRange,
-		StopsRange:         req.StopsRange,
+		NumberOfStops:      req.NumberOfStops,
 		DepartureTimeRange: req.DepartureTimeRange,
 		ArrivalTimeRange:   req.ArrivalTimeRange,
 		Airlines:           req.Airlines,
