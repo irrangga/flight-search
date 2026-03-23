@@ -74,6 +74,9 @@ func (a *Aggregator) Search(request domain.SearchRequest) domain.SearchResult {
 				fmt.Printf("Error normalizing flight from %s: %v\n", result.Provider, err)
 				continue
 			}
+			// Calculate score: price + duration (in minutes) * 1250 to give more weight to price (based on 4 hours delay get Rp300.000,-)
+			normalized.Score = float64(normalized.Price.Amount) + float64(normalized.Duration.TotalMinutes*1250)
+
 			normalizedFlights = append(normalizedFlights, normalized)
 		}
 	}
@@ -260,6 +263,10 @@ func (a *Aggregator) isTimeInRange(flightTime, minTime, maxTime string) bool {
 // applySorting sorts the flights based on the sortBy parameter
 func (a *Aggregator) applySorting(flights []domain.Flight, sortBy string) {
 	switch sortBy {
+	case "price_asc":
+		sort.Slice(flights, func(i, j int) bool {
+			return flights[i].Price.Amount < flights[j].Price.Amount
+		})
 	case "price_desc":
 		sort.Slice(flights, func(i, j int) bool {
 			return flights[i].Price.Amount > flights[j].Price.Amount
@@ -288,12 +295,10 @@ func (a *Aggregator) applySorting(flights []domain.Flight, sortBy string) {
 		sort.Slice(flights, func(i, j int) bool {
 			return flights[i].Arrival.Timestamp > flights[j].Arrival.Timestamp
 		})
-	case "price_asc":
-		fallthrough
 	default:
-		// Default: price ascending
+		// Default: based on score, the lower the score, the better
 		sort.Slice(flights, func(i, j int) bool {
-			return flights[i].Price.Amount < flights[j].Price.Amount
+			return flights[i].Score < flights[j].Score
 		})
 	}
 }

@@ -88,6 +88,7 @@ func TestSearch_FlightsSortedByPrice(t *testing.T) {
 		DepartureDate: "2025-12-15",
 		Passengers:    1,
 		CabinClass:    "economy",
+		SortBy:        "price_asc",
 	}
 
 	agg := NewAggregator()
@@ -316,6 +317,29 @@ func TestSearch_FilterByDepartureTimeRange(t *testing.T) {
 	for _, flight := range result.Flights {
 		if flight.Departure.Datetime[11:16] < "06:00" || flight.Departure.Datetime[11:16] > "07:00" {
 			t.Errorf("Flight departure time %s is not in range [06:00, 07:00]", flight.Departure.Datetime[11:16])
+		}
+	}
+}
+
+func TestSearch_RankingByScore(t *testing.T) {
+	request := domain.SearchRequest{
+		Origin:        "CGK",
+		Destination:   "DPS",
+		DepartureDate: "2025-12-15",
+		Passengers:    1,
+		CabinClass:    "economy",
+	}
+
+	agg := NewAggregator()
+	result := agg.Search(request)
+
+	if len(result.Flights) < 2 {
+		t.Skip("Not enough flights to test ranking")
+	}
+
+	for i := 1; i < len(result.Flights); i++ {
+		if result.Flights[i-1].Score > result.Flights[i].Score {
+			t.Error("Flights not ranked by score ascending")
 		}
 	}
 }

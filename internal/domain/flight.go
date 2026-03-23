@@ -20,7 +20,7 @@ type SearchRequest struct {
 	DurationRange      []int
 
 	// Sort
-	SortBy string // "price_asc", "price_desc", "duration_asc", "duration_desc", "departure_asc", "arrival_asc"
+	SortBy string // "price_asc", "price_desc", "duration_asc", "duration_desc", "departure_asc", "departure_desc", "arrival_asc", "arrival_desc"
 }
 
 // ProviderResult represents the result from a single provider
@@ -48,6 +48,7 @@ type Flight struct {
 	Aircraft       *string
 	Amenities      []string
 	Baggage        Baggage
+	Score          float64 // For ranking purposes, the lower the score, the better
 }
 
 // Airline represents airline information
