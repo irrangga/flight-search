@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"flight-search/internal/domain"
+
+	"golang.org/x/time/rate"
 )
 
 // Provider defines the interface for flight providers
@@ -20,10 +22,12 @@ type Provider interface {
 
 // BaseProvider provides common functionality for all providers
 type BaseProvider struct {
-	name        string
-	delayMin    time.Duration
-	delayMax    time.Duration
-	failureRate float64
+	name             string
+	delayMin         time.Duration
+	delayMax         time.Duration
+	failureRate      float64
+	rateLimiter      *rate.Limiter
+	disableRateLimit bool
 }
 
 func (p *BaseProvider) Name() string {
@@ -39,6 +43,13 @@ func (p *BaseProvider) simulateDelay() {
 
 func (p *BaseProvider) simulateFailure() bool {
 	return rand.Float64() < p.failureRate
+}
+
+func (p *BaseProvider) waitForRateLimit() error {
+	if !p.disableRateLimit && p.rateLimiter != nil && !p.rateLimiter.Allow() {
+		return fmt.Errorf("rate limit exceeded")
+	}
+	return nil
 }
 
 func (p *BaseProvider) loadMockData(filename string) (map[string]interface{}, error) {

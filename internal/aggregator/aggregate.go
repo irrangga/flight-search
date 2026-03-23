@@ -28,8 +28,20 @@ func NewAggregator() *Aggregator {
 	}
 }
 
+// NewTestAggregator creates a new flight aggregator for testing (with rate limiting disabled)
+func NewTestAggregator() *Aggregator {
+	return &Aggregator{
+		providers: []provider.Provider{
+			provider.NewGarudaIndonesiaProviderForTest(),
+			provider.NewLionAirProviderForTest(),
+			provider.NewBatikAirProviderForTest(),
+			provider.NewAirAsiaProviderForTest(),
+		},
+	}
+}
+
 // Search performs parallel flight search across all providers
-func (a *Aggregator) Search(request domain.SearchRequest) domain.SearchResult {
+func (a *Aggregator) Search(request domain.SearchRequest) (domain.SearchResult, error) {
 	start := time.Now()
 
 	// Channel to collect results
@@ -54,14 +66,19 @@ func (a *Aggregator) Search(request domain.SearchRequest) domain.SearchResult {
 
 	// Collect results
 	var successfulResults []domain.ProviderResult
-	var failedProviders []string
+	var failedProviders []error
 
 	for result := range resultsChan {
 		if result.Success {
 			successfulResults = append(successfulResults, result)
 		} else {
-			failedProviders = append(failedProviders, result.Provider)
+			failedProviders = append(failedProviders, fmt.Errorf("%s: %v", result.Provider, result.Error))
 		}
+	}
+
+	// If all providers failed, return error
+	if len(successfulResults) == 0 {
+		return domain.SearchResult{}, fmt.Errorf("all providers failed: %v", failedProviders)
 	}
 
 	// Normalize flights from all providers
@@ -108,7 +125,7 @@ func (a *Aggregator) Search(request domain.SearchRequest) domain.SearchResult {
 			CacheHit:           false,
 		},
 		Flights: normalizedFlights,
-	}
+	}, nil
 }
 
 // extractFlightsFromResponse extracts flight data from provider response

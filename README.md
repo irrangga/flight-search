@@ -179,6 +179,12 @@ Each provider adapter:
 5. **Type Safety**: Domain models ensure compile-time type correctness
 6. **Go Conventions**: `internal/` package for private implementations, `cmd/` for entry points
 7. **Layer Pattern**: Clear separation between domain, application, and transport layers
+8. **Rate Limiting**: Per-provider token bucket rate limiters prevent API abuse
+
+## Provider Rate Limits
+
+Airlines provider has rate limits to respect their APIs.
+Rate limiting uses Go's `golang.org/x/time/rate` package with token bucket algorithm.
 
 ## Data Flow
 
@@ -202,13 +208,6 @@ aggregator/Aggregator.Search()
 ## Future Enhancements (Skipped for Now)
 
 - [ ] Caching layer (`internal/cache/`)
-- [ ] Advanced filtering (`internal/service/filter.go`)
-- [ ] Result sorting strategies (`internal/service/sort.go`)
-- [ ] Flight ranking algorithm (`internal/service/ranking.go`)
-- [ ] GraphQL endpoint
-- [ ] Database persistence
-- [ ] Authentication & authorization
-- [ ] Rate limiting
 
 ```bash
 # Run as web server
@@ -250,9 +249,7 @@ go test ./...
 ## Future Enhancements
 
 - Add caching layer (Redis/memory)
-- Implement "best value" scoring algorithm
 - Support round-trip searches
-- Add rate limiting
 - Implement retry logic with exponential backoff
 - Add currency formatting
 - Support multi-city searches

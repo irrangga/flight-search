@@ -66,7 +66,11 @@ func (h *Handler) searchFlightsHandler(c *gin.Context) {
 		SortBy: req.SortBy,
 	}
 
-	result := h.aggregator.Search(domainRequest)
+	result, err := h.aggregator.Search(domainRequest)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	resp := mapper.ToSearchResponse(result)
 	c.JSON(http.StatusOK, resp)
 }
