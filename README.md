@@ -1,10 +1,90 @@
 # Flight Search API
 
-A clean architecture flight search aggregation system that queries multiple airline providers in parallel, normalizes their responses, and returns unified flight data.
+A high-performance flight search aggregation API built with Go that queries multiple airline providers in parallel, normalizes their responses, and returns unified flight data with advanced filtering and caching capabilities.
 
-## Architecture
+## 🚀 Features
 
-This project follows **Clean Code** and **Hexagonal Architecture** principles:
+- **Multi-Provider Aggregation**: Simultaneously queries multiple airline APIs (Garuda Indonesia, Lion Air, Batik Air, AirAsia)
+- **Concurrent Execution**: Uses goroutines and channels to fetch provider data in parallel for faster responses
+- **Response Normalization**: Converts provider-specific formats into a unified domain model
+- **Advanced Filtering**: Supports filtering by price range, departure/arrival time, airlines, duration, stops, seats, and passenger count
+- **Sorting**: Enables sorting by price, duration, departure time, and arrival time
+- **Smart Ranking**: Prioritizes optimal results based on price and convenience
+- **Rate Limiting**: Prevents excessive requests to external providers
+- **Intelligent Caching**: In-memory TTL caching to reduce API calls and improve performance
+- **Extensible Architecture**: Hexagonal design for easy addition of new providers
+- **Fault Tolerance**: Gracefully handles partial failures from providers
+- **Docker Support**: Containerized deployment using docker-compose
+
+## 🏗️ Architecture
+
+### Data Flow
+
+```
+Client Request
+      ↓
+Cache Check
+      ↓
+( Miss )
+      ↓
+Fetch Providers (Concurrent)
+      ↓
+Normalize Responses
+      ↓
+Aggregate Results
+      ↓
+Filter → Sort → Rank
+      ↓
+Cache Result
+      ↓
+Return Response
+```
+
+### Design Decisions
+
+**Separation of Concerns**
+
+- Providers, aggregation, filtering, sorting, and caching are handled independently
+
+**Concurrent Providers**
+
+- External APIs are queried in parallel using goroutines and channels
+
+**Pluggable Providers**
+
+- New providers can be added via a common interface
+
+**Caching Strategy**
+
+- In-memory cache with TTL
+- Cache keys derived from request parameters
+
+**Filtering & Sorting**
+
+- Multi-dimensional filtering across price, time range, airline, duration, stops, and seat availability
+- Flexible sorting by price, duration, and time (ascending/descending) across aggregated results
+
+**Resilience**
+
+- Partial failures are tolerated (graceful degradation)
+- Rate limiting prevents provider overuse
+
+### Providers
+
+Integrates with:
+
+- **Garuda Indonesia** - Mock delays: 50-100ms
+- **Lion Air** - Mock delays: 100-200ms
+- **Batik Air** - Mock delays: 200-400ms
+- **AirAsia** - Mock delays: 50-150ms, 10% failure rate
+
+Each provider adapter:
+
+1. Loads mock provider responses from `internal/mock-api/` directory
+2. Simulates realistic delays and potential failures
+3. Returns results within `ProviderResult` domain model
+
+## 📁 Project Structure
 
 ```
 flight-search/
@@ -21,44 +101,41 @@ flight-search/
 │   │   ├── normalizer.go              # Normalization router
 │   │   └── garuda.go, lion.go, ...    # Provider-specific normalizers
 │   ├── aggregator/
-│   │   └── aggregate.go               # Flight aggregation orchestrator
+│   │   ├── aggregate.go               # Flight aggregation orchestrator
+│   │   ├── filter.go                  # Flight filtering logic
+│   │   ├── sort.go                    # Flight sorting logic
+│   │   └── cache.go                   # Caching layer
 │   ├── mapper/
 │   │   └── response.go                # Domain → DTO conversion
-│   └── transport/
-│       └── http.go                    # HTTP handler & routes
-├── mock-api/                          # Mock provider responses
+│   ├── transport/
+│   │   ├── http.go                    # HTTP handler
+│   │   └── router.go                  # Route definitions
+│   ├── mock-api/                      # Mock provider responses
+│   ├── constant/                      # Application constants
+│   └── utils/                         # Utility functions
+├── Dockerfile                         # Docker build configuration
+├── docker-compose.yml                 # Docker Compose setup
 ├── go.mod
 └── README.md
 ```
 
-## Package Responsibilities
+### Package Responsibilities
 
 - **domain**: Pure business domain models (no external dependencies)
 - **provider**: Interfaces and implementations for external airline APIs
 - **normalizer**: Converts provider-specific formats to unified domain models
-- **aggregator**: Orchestrates parallel provider queries and aggregation
+- **aggregator**: Orchestrates parallel provider queries, aggregation, filtering, sorting, and caching
 - **mapper**: Converts domain models to HTTP response DTOs
 - **transport**: HTTP handler and request/response management
 - **cmd/api**: Application bootstrap and dependency injection
+- **constant**: Application-wide constants
+- **utils**: Utility functions (hashing, etc.)
 
-## Running
+## 📡 API Endpoints
 
-### Build & Run
+### POST /api/search-flights
 
-```bash
-# Run directly
-go run ./cmd/api
-
-# Or build and run binary
-go build -o flight-search ./cmd/api
-./flight-search
-```
-
-Server starts on `http://localhost:8080`
-
-## API Endpoint
-
-### POST `/api/search-flights`
+Search for flights across all providers.
 
 **Request:**
 
@@ -72,7 +149,7 @@ Server starts on `http://localhost:8080`
 }
 ```
 
-**Request with Filters:**
+**Request with Additional Filters:**
 
 ```json
 {
@@ -82,7 +159,7 @@ Server starts on `http://localhost:8080`
   "passengers": 1,
   "cabinClass": "economy",
   "priceRange": [1000000, 2000000],
-  "stopsRange": [0, 1],
+  "numberOfStops": [0, 1, 2],
   "departureTimeRange": ["06:00", "12:00"],
   "arrivalTimeRange": ["10:00", "18:00"],
   "airlines": ["AirAsia", "Garuda"],
@@ -112,138 +189,131 @@ Server starts on `http://localhost:8080`
   },
   "flights": [
     {
-      "id": "GA001_Garuda Indonesia",
-      "provider": "Garuda Indonesia",
-      "airline": { "name": "Garuda Indonesia", "code": "GA" },
-      "flight_number": "GA001",
+      "id": "JT742_Lion Air",
+      "provider": "Lion Air",
+      "airline": {
+        "name": "Lion Air",
+        "code": "JT"
+      },
+      "flight_number": "JT742",
       "departure": {
         "airport": "CGK",
         "city": "Jakarta",
-        "datetime": "2025-12-15T08:00:00Z",
-        "timestamp": 1702614000
+        "datetime": "2025-12-15T11:45:00+07:00",
+        "timestamp": 1765773900
       },
       "arrival": {
         "airport": "DPS",
-        "city": "Bali",
-        "datetime": "2025-12-15T11:00:00Z",
-        "timestamp": 1702624800
+        "city": "Denpasar",
+        "datetime": "2025-12-15T14:35:00+08:00",
+        "timestamp": 1765780500
       },
       "duration": {
-        "total_minutes": 180,
-        "formatted": "3h 0m"
+        "total_minutes": 110,
+        "formatted": "1h 50m"
       },
       "stops": 0,
-      "price": { "amount": 1500000, "currency": "IDR" },
-      "available_seats": 100,
+      "price": {
+        "amount": 890000,
+        "currency": "IDR",
+        "formatted": "Rp 890.000"
+      },
+      "available_seats": 38,
       "cabin_class": "economy",
-      "aircraft": "Boeing 737",
-      "amenities": ["WiFi", "Meal"],
-      "baggage": { "carry_on": "1 piece", "checked": "1 piece" }
+      "aircraft": "Boeing 737-800",
+      "amenities": ["wiFi", "meal"],
+      "baggage": {
+        "carry_on": "7 kg",
+        "checked": "20 kg"
+      }
     }
   ]
 }
+```
+
+### GET /health
+
+Health check endpoint.
+
+**Response:**
+
+```json
+{
+  "status": "ok"
+}
+```
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+- Go 1.25.0 or later
+- Docker and Docker Compose (for containerized deployment)
+
+### Method 1: Run with Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd flight-search
+
+# Build and run with Docker Compose
+docker-compose up --build
+
+# The API will be available at http://localhost:8080
+```
+
+### Method 2: Run Locally
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd flight-search
+
+# Install dependencies
+go mod download
+
+# Run the application
+go run ./cmd/api
+
+# The API will be available at http://localhost:8080
+```
+
+### Method 3: Build and Run Binary
+
+```bash
+# Build the binary
+go build -o flight-search ./cmd/api
+
+# Run the binary
+./flight-search
 ```
 
 ## Testing
 
 ```bash
 # Run all tests
-go test -v ./...
+go test ./...
 
 # Run specific package tests
-go test -v ./internal/aggregator
-go test -v ./internal/transport
+go test ./internal/aggregator -v
 ```
 
-## Providers
-
-Integrates with:
-
-- **Garuda Indonesia** - Mock delays: 50-100ms
-- **Lion Air** - Mock delays: 100-200ms
-- **Batik Air** - Mock delays: 200-400ms
-- **AirAsia** - Mock delays: 50-150ms, 10% failure rate
-
-Each provider adapter:
-
-1. Loads mock provider responses from `mock-api/` directory
-2. Simulates realistic delays and potential failures
-3. Returns results within `ProviderResult` domain model
-
-## Design Decisions
-
-1. **Separation of Concerns**: Each package has a single responsibility
-2. **Dependency Inversion**: Providers and normalizers follow interface patterns
-3. **No Framework Dependencies**: Uses Go standard library HTTP only
-4. **Parallel Processing**: Goroutines for concurrent provider queries
-5. **Type Safety**: Domain models ensure compile-time type correctness
-6. **Go Conventions**: `internal/` package for private implementations, `cmd/` for entry points
-7. **Layer Pattern**: Clear separation between domain, application, and transport layers
-8. **Rate Limiting**: Per-provider token bucket rate limiters prevent API abuse
-
-## Provider Rate Limits
-
-Airlines provider has rate limits to respect their APIs.
-Rate limiting uses Go's `golang.org/x/time/rate` package with token bucket algorithm.
-
-## Data Flow
-
-```
-HTTP Request
-    ↓
-transport/Handler
-    ↓
-aggregator/Aggregator.Search()
-    ├─→ provider/Provider.SearchFlights() × 4 (parallel)
-    │       └─→ normalizer/NormalizeFlight()
-    │
-    ├─→ Collect & sort results
-    └─→ domain/SearchResult
-        ↓
-    mapper/ToSearchResponse()
-        ↓
-    HTTP Response (JSON)
-```
+## Docker Commands
 
 ```bash
-# Run as web server
-go run ./cmd/api
+# Build the image
+docker build -t flight-search .
 
-# Server starts on http://localhost:8080
-# API Endpoint: POST /api/search-flights
+# Run the container
+docker run -p 8080:8080 flight-search
+
+# Or use docker-compose
+docker-compose up -d
+docker-compose logs -f
+docker-compose down
 ```
 
-**Example API Request:**
+## 📄 License
 
-```bash
-curl -X POST http://localhost:8080/api/search-flights \
-  -H "Content-Type: application/json" \
-  -d '{
-    "origin": "CGK",
-    "destination": "DPS",
-    "departureDate": "2025-12-15",
-    "passengers": 1,
-    "cabinClass": "economy"
-  }'
-```
-
-## Building
-
-```bash
-go build -o flight-search ./cmd/api
-./flight-search
-```
-
-````
-
-## Testing
-
-```bash
-go test ./...
-````
-
-## Future Enhancements
-
-- Support round-trip searches
-- Implement retry logic with exponential backoff
-- Support multi-city searches
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
