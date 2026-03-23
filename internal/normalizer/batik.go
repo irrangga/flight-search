@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"flight-search/internal/constant"
 	"flight-search/internal/domain"
 )
 
@@ -72,6 +73,7 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 
 	// Seats
 	seatsAvailable, _ := flight["seatsAvailable"].(float64)
+	cabinClass, _ := fare["class"].(string)
 
 	// Aircraft
 	var aircraft *string
@@ -126,7 +128,7 @@ func NormalizeBatikAir(flight map[string]interface{}) (domain.Flight, error) {
 		Stops:          int(numberOfStops),
 		Price:          domain.Price{Amount: int(totalPrice), Currency: currencyCode},
 		AvailableSeats: int(seatsAvailable),
-		CabinClass:     "economy",
+		CabinClass:     constant.MapCabinClass(cabinClass),
 		Aircraft:       aircraft,
 		Amenities:      amenities,
 		Baggage:        domain.Baggage{CarryOn: carryOn, Checked: checked},

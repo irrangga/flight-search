@@ -81,7 +81,7 @@ func TestNormalizeBatikAir(t *testing.T) {
 			"taxes":        120000,
 			"totalPrice":   1100000,
 			"currencyCode": "IDR",
-			"class":        "Y",
+			"class":        "Z",
 		},
 		"seatsAvailable": 32,
 		"aircraftModel":  "Airbus A320",
@@ -112,8 +112,8 @@ func TestNormalizeBatikAir(t *testing.T) {
 	if f.Provider != "Batik Air" {
 		t.Errorf("expected provider Batik Air, got %q", f.Provider)
 	}
-	if f.CabinClass != "economy" {
-		t.Errorf("expected cabin class economy, got %q", f.CabinClass)
+	if f.CabinClass != "business" {
+		t.Errorf("expected cabin class business, got %q", f.CabinClass)
 	}
 	if f.Airline.Name != "Batik Air" {
 		t.Errorf("expected airline Batik Air, got %q", f.Airline.Name)
@@ -290,5 +290,11 @@ func TestNormalizeLionAir(t *testing.T) {
 		if i == 1 && amenity != "meal" {
 			t.Errorf("expected meal amenity")
 		}
+	}
+	if f.Departure.Datetime != "2025-12-15T05:30:00+07:00" {
+		t.Errorf("expected departure datetime 2025-12-15T05:30:00+07:00, got %q", f.Departure.Datetime)
+	}
+	if f.Arrival.Datetime != "2025-12-15T08:15:00+08:00" {
+		t.Errorf("expected arrival datetime 2025-12-15T08:15:00+08:00, got %q", f.Arrival.Datetime)
 	}
 }

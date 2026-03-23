@@ -29,14 +29,22 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 	// Schedule
 	schedule, _ := flight["schedule"].(map[string]interface{})
 	depTime, _ := schedule["departure"].(string)
+	deptLoc, err := time.LoadLocation(schedule["departure_timezone"].(string))
+	if err != nil {
+		return domain.Flight{}, fmt.Errorf("invalid timezone: %w", err)
+	}
 	arrTime, _ := schedule["arrival"].(string)
+	arrLoc, err := time.LoadLocation(schedule["arrival_timezone"].(string))
+	if err != nil {
+		return domain.Flight{}, fmt.Errorf("invalid timezone: %w", err)
+	}
 
 	// Parse times
-	depDt, err := time.Parse("2006-01-02T15:04:05", depTime)
+	depDt, err := time.ParseInLocation("2006-01-02T15:04:05", depTime, deptLoc)
 	if err != nil {
 		return domain.Flight{}, fmt.Errorf("invalid departure time: %w", err)
 	}
-	arrDt, err := time.Parse("2006-01-02T15:04:05", arrTime)
+	arrDt, err := time.ParseInLocation("2006-01-02T15:04:05", arrTime, arrLoc)
 	if err != nil {
 		return domain.Flight{}, fmt.Errorf("invalid arrival time: %w", err)
 	}
@@ -125,13 +133,13 @@ func NormalizeLionAir(flight map[string]interface{}) (domain.Flight, error) {
 		Departure: domain.FlightEndpoint{
 			Airport:   fromCode,
 			City:      depCity,
-			Datetime:  depTime + "+07:00",
+			Datetime:  depDt.Format(time.RFC3339),
 			Timestamp: depDt.Unix(),
 		},
 		Arrival: domain.FlightEndpoint{
 			Airport:   toCode,
 			City:      arrCity,
-			Datetime:  arrTime + "+08:00",
+			Datetime:  arrDt.Format(time.RFC3339),
 			Timestamp: arrDt.Unix(),
 		},
 		Duration: domain.Duration{
