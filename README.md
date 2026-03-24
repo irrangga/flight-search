@@ -25,8 +25,6 @@ Client Request
       ↓
 Cache Check
       ↓
-( Miss )
-      ↓
 Fetch Providers (Concurrent)
       ↓
 Normalize Responses
@@ -129,7 +127,7 @@ flight-search/
 - **transport**: HTTP handler and request/response management
 - **cmd/api**: Application bootstrap and dependency injection
 - **constant**: Application-wide constants
-- **utils**: Utility functions (hashing, etc.)
+- **utils**: Utility functions (formatter, etc.)
 
 ## 📡 API Endpoints
 
@@ -254,20 +252,20 @@ Health check endpoint.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/irrangga/flight-search.git
 cd flight-search
 
 # Build and run with Docker Compose
 docker-compose up --build
 
-# The API will be available at http://localhost:8080
+# Check if the API available at http://localhost:8080/health
 ```
 
 ### Method 2: Run Locally
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/irrangga/flight-search.git
 cd flight-search
 
 # Install dependencies
@@ -276,7 +274,7 @@ go mod download
 # Run the application
 go run ./cmd/api
 
-# The API will be available at http://localhost:8080
+# Check if the API available at http://localhost:8080/health
 ```
 
 ### Method 3: Build and Run Binary
@@ -297,21 +295,6 @@ go test ./...
 
 # Run specific package tests
 go test ./internal/aggregator -v
-```
-
-## Docker Commands
-
-```bash
-# Build the image
-docker build -t flight-search .
-
-# Run the container
-docker run -p 8080:8080 flight-search
-
-# Or use docker-compose
-docker-compose up -d
-docker-compose logs -f
-docker-compose down
 ```
 
 ## 📄 License
